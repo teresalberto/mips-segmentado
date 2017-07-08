@@ -22,7 +22,14 @@ port(
 end processor;
 
 architecture processor_arq of processor is 
-
+	--Instrucciones tipo R
+	alias op: std_logic_vector(5 downto 0) is I_DataOut(31 downto 26);
+	alias rs: std_logic_vector(4 downto 0) is I_DataOut(25 downto 21);
+	alias rt: std_logic_vector(4 downto 0) is I_DataOut(20 downto 16);
+	alias rd: std_logic_vector(4 downto 0) is I_DataOut(15 downto 11);
+	alias funct: std_logic_vector(5 downto 0) is I_DataOut(5 downto 0);
+	-- Instrucciones tipo I
+	alias offset: std_logic_vector(15 downto 0) is I_DataOut(15 downto 0);
   
 begin 	
  
