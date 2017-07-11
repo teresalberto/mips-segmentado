@@ -2,15 +2,15 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity mux is
+entity mux_addr is
     Port ( 
 	sel : in  std_logic;
-        a : in  std_logic_vector (4 downto 0);
-        b : in  std_logic_vector (4 downto 0);
-        output : out  std_logic_vector (4 downto 0));
-end mux;
+        a : in  std_logic_vector (31 downto 0);
+        b : in  std_logic_vector (31 downto 0);
+        output : out  std_logic_vector (31 downto 0));
+end mux_addr;
 
-architecture mux_arq of mux is
+architecture mux_addr_arq of mux is
 begin
 
 process(sel,a,b)
@@ -23,4 +23,4 @@ begin
 		when others =>	output <= b;
 	end case;
 end process;
-end mux_arq;
+end mux_addr_arq;

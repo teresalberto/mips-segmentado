@@ -35,7 +35,8 @@ port(
 	--OUT: Instruccion x bits
 	Out_InstructOffset_Ext: out std_logic_vector(31 downto 0);
 	Out_InstructRT: out std_logic_vector(4 downto 0);
-	Out_InstructRS: out std_logic_vector(4 downto 0));
+	Out_InstructRD: out std_logic_vector(4 downto 0)
+	);
 end etapa_ID;
 
 architecture etapa_ID_arq of etapa_ID is
@@ -130,6 +131,12 @@ begin
 		input => offset,
 		output => Out_InstructOffset_Ext
 		);
+
+--SEÑALES
+	--Asigno Alias de instrucción a salida.
+	Out_InstructRT <= Rt;
+	Out_InstructRD <= Rd;
+
 
 --PROCESOS
 
