@@ -63,72 +63,45 @@ architecture processor_arq of processor is
 	end component;
 
 	component etapa_EX port(
-		RegDest: in  std_logic;
-		In_AluOp: in  std_logic_vector (2 downto 0);
-		In_AluSrc: in  std_logic;
-	
-		In_NextInstrAddr : in std_logic_vector(31 downto 0);
-		In_RegReadData1: in std_logic_vector(31 downto 0);
-		In_RegReadData2: in std_logic_vector(31 downto 0);
+		RegDest: 	in std_logic;
+		AluOp: 		in std_logic_vector (2 downto 0);
+		AluSrc: 	in std_logic;
 
-		In_InstructOffset_Ext: in std_logic_vector(31 downto 0);
-		Rt: in std_logic_vector(4 downto 0);
-		Rd: in std_logic_vector(4 downto 0);
+		NextInstrAddr: 	in std_logic_vector(31 downto 0);
+		RegReadData1:	in std_logic_vector(31 downto 0);
+		RegReadData2: 	in std_logic_vector(31 downto 0);
 
-		Out_AddResult : out std_logic_vector(31 downto 0);
-		Out_AluZero : out std_logic;
-		Out_AluResult : out std_logic_vector(31 downto 0);
-		Out_RegReadData2: out std_logic_vector(31 downto 0);
-		Out_RegWriteAddr : out std_logic_vector(4 downto 0));
+		InstrOffsetExt: in std_logic_vector(31 downto 0);
+		Rt: 		in std_logic_vector(4 downto 0);
+		Rd: 		in std_logic_vector(4 downto 0);
+
+		AddResult : 	out std_logic_vector(31 downto 0);
+		AluZero: 	out std_logic;
+		AluResult: 	out std_logic_vector(31 downto 0);
+		RegWriteAddr: 	out std_logic_vector(4 downto 0));
 	end component;
 
 	component etapa_MEM port(
-		--IN: entrada
-		Clk : in  std_logic;
-		Reset : in  std_logic;
-
 		--Control de Reg Segmentacion
-		 --IN: WE
-		In_RegWrite : in  std_logic;
-		In_MemToReg : in  std_logic;
-		 --IN: MEM
-		In_Branch : in  std_logic;
-		In_MemRead : in  std_logic;
-		In_MemWrite : in  std_logic;
+		Branch: 	in std_logic;
+		MemRead: 	in std_logic;
+		MemWrite: 	in std_logic;
+	
+		AddResult: 	in std_logic_vector(31 downto 0);
+		AluZero: 	in std_logic;
+		AluResult: 	in std_logic_vector(31 downto 0);
+		RegReadData2: 	in std_logic_vector(31 downto 0);
+		RegWriteAddr: 	in std_logic_vector(4 downto 0);
 
-		In_AddResult : in std_logic_vector(31 downto 0);
-		In_AluZero : in std_logic;
-		In_AluResult : in std_logic_vector(31 downto 0);
-		In_RegReadData2: in std_logic_vector(31 downto 0);
-		In_RegWriteRegister : in std_logic_vector(4 downto 0);
-	
-		--Control de Reg Segmentacion
-		 --OUT: WE
-		Out_RegWrite : out  std_logic;
-		Out_MemToReg : out  std_logic;
-	
-		Out_PCSrc : out std_logic;
-		Out_MemReadData : out std_logic_vector(31 downto 0);
-		Out_AluZero : out std_logic);
+		PCSrc: 		out std_logic;
+		MemReadData: 	out std_logic_vector(31 downto 0));
 	end component;
 
 	component etapa_WB port(
-		--IN: entrada
-		Clk : in  std_logic;
-		Reset : in  std_logic;
-
-		--Control de Reg Segmentacion
-		 --IN: WB
-		In_RegWrite : in  std_logic;
-		In_MemToReg : in  std_logic;
-
-		In_MemReadData : in std_logic_vector(31 downto 0);
-		In_AluResult : in std_logic_vector(31 downto 0);
-		In_RegWriteRegister : in std_logic_vector(4 downto 0);
-
-		Out_RegWrite : out std_logic;
-		Out_RegWriteRegister : out std_logic_vector(4 downto 0);
-		Out_RegWriteData : out std_logic_vector(31 downto 0));
+		MemToReg: 	in  std_logic;
+		MemReadData: 	in std_logic_vector(31 downto 0);
+		AluResult: 	in std_logic_vector(31 downto 0);
+		RegWriteData: 	out std_logic_vector(31 downto 0));
 	end component;
 
 	signal IF_PCSrc: 		std_logic;
@@ -136,7 +109,7 @@ architecture processor_arq of processor is
 	signal IF_NextInstrAddr: 	std_logic_vector(31 downto 0);
 
 	signal ID_Instr: 		std_logic_vector(31 downto 0);
-	signal ID_RegWe: 		std_logic_vector(31 downto 0);
+	signal ID_NextInstrAddr: 	std_logic_vector(31 downto 0);
 	signal ID_RegWriteAddr:	 	std_logic_vector(4 downto 0);
 	signal ID_RegWriteData:		std_logic_vector(31 downto 0);
 	signal ID_Branch: 		std_logic;
@@ -153,33 +126,48 @@ architecture processor_arq of processor is
 	signal ID_Rt:			std_logic_vector(4 downto 0);
 	signal ID_Rd: 			std_logic_vector(4 downto 0);
 
-	signal EX_RegDest:             	std_logic;
-	signal EX_AluOp:               	std_logic_vector (2 downto 0);
-	signal EX_AluSrc:              	std_logic;
-	signal EX_NextInstrAddr:       	std_logic_vector(31 downto 0);
-	signal EX_RegReadData1:        	std_logic_vector(31 downto 0);
-	signal EX_RegReadData2:        	std_logic_vector(31 downto 0);
-	signal EX_InstrOffsetExt:   	std_logic_vector(31 downto 0);
-	signal EX_Rt:	           	std_logic_vector(4 downto 0);
-	signal EX_Rd:	           	std_logic_vector(4 downto 0);
-	signal EX_Branch:		std_logic;
-	signal EX_MemRead:		std_logic;
-	signal EX_MemWrite:		std_logic;
-	signal EX_RegWrite:		std_logic;
-	signal EX_MemToReg:		std_logic;
+	signal EX_RegDest: 		std_logic;
+	signal EX_AluOp: 		std_logic_vector (2 downto 0);
+	signal EX_AluSrc: 		std_logic;
+	signal EX_NextInstrAddr: 	std_logic_vector(31 downto 0);
+	signal EX_RegReadData1:		std_logic_vector(31 downto 0);
+	signal EX_RegReadData2: 	std_logic_vector(31 downto 0);
+	signal EX_InstrOffsetExt: 	std_logic_vector(31 downto 0);
+	signal EX_Rt: 			std_logic_vector(4 downto 0);
+	signal EX_Rd: 			std_logic_vector(4 downto 0);
+	signal EX_AddResult: 		std_logic_vector(31 downto 0);
+	signal EX_AluZero: 		std_logic;
+	signal EX_AluResult: 		std_logic_vector(31 downto 0);
+	signal EX_RegWriteAddr: 	std_logic_vector(4 downto 0);
 
 	signal MEM_Branch:		std_logic;
 	signal MEM_MemRead:		std_logic;
 	signal MEM_MemWrite:		std_logic;
 	signal MEM_RegWrite:		std_logic;
 	signal MEM_MemToReg:		std_logic;
+	signal MEM_AddResult: 		std_logic_vector(31 downto 0);
+	signal MEM_AluZero: 		std_logic;
+	signal MEM_AluResult: 		std_logic_vector(31 downto 0);
+	signal MEM_RegWriteAddr: 	std_logic_vector(4 downto 0);
 
-	signal WB_RegWrite:		std_logic;
+	signal MEM_PCSrc: 		std_logic;
+	signal MEM_MemReadData: 	std_logic_vector(31 downto 0);
+
 	signal WB_MemToReg:		std_logic;
-	signal WB_RegWe:		std_logic;
-	signal WB_RegDst:		std_logic_vector(4 downto 0);
-	signal WB_WriteData:		std_logic_vector(31 downto 0);
+	signal WB_MemReadData: 		std_logic_vector(31 downto 0);
+	signal WB_AluResult: 		std_logic_vector(31 downto 0);
+	signal WB_RegWriteData:		std_logic_vector(31 downto 0);
 
+	-- Señales "virtuales" (registro solamente)
+	signal EX_Branch:		std_logic;
+	signal EX_MemRead:		std_logic;
+	signal EX_MemWrite:		std_logic;
+	signal EX_RegWrite:		std_logic;
+	signal EX_MemToReg:		std_logic;
+	signal MEM_RegReadData2: 	std_logic_vector(31 downto 0);
+	signal WB_RegWe:		std_logic;
+	signal WB_RegWrite:		std_logic;
+	signal WB_RegWriteAddr: 	std_logic_vector(4 downto 0);
 begin 	
   if_inst: etapa_IF port map (
 	Clk => Clk,
@@ -191,12 +179,12 @@ begin
   );
 
   id_inst: etapa_ID port map (
-	Clk => Clk,
-	Reset => Reset,
-	Instr => ID_Instr,
-	RegWe => ID_RegWe,
-	RegWriteAddr => ID_RegWriteAddr,
-	RegWriteData => ID_RegWriteData,
+	Clk 		=> Clk,
+	Reset 		=> Reset,
+	Instr 		=> ID_Instr,
+	RegWe 		=> WB_RegWrite,
+	RegWriteAddr 	=> WB_RegWriteAddr,
+	RegWriteData 	=> WB_RegWriteData,
 	
 	-- Salidas de Control
 	---- MEM
@@ -223,73 +211,51 @@ begin
 
   ex_inst: etapa_EX port map (
 	RegDest => EX_RegDest,
-	In_AluOp => EX_AluOp,
-	In_AluSrc => EX_AluSrc,
+	AluOp => EX_AluOp,
+	AluSrc => EX_AluSrc,
 
-	In_NextInstrAddr => EX_NextInstrAddr,
-	In_RegReadData1 => EX_RegReadData1,
-	In_RegReadData2 => EX_RegReadData2,
+	NextInstrAddr => EX_NextInstrAddr,
+	RegReadData1 => EX_RegReadData1,
+	RegReadData2 => EX_RegReadData2,
 
-	In_InstructOffset_Ext => EX_InstructOffset_Ext,
+	InstrOffsetExt => EX_InstrOffsetExt,
 	Rt => EX_Rt,
 	Rd => EX_Rd,
 
-	Out_AddResult => EX_AddResult,
-	Out_AluZero => EX_AluZero,
-	Out_AluResult => EX_AluResult,
-	Out_RegReadData2 => EX_RegReadData2,
-	Out_RegWriteAddr => EX_RegWriteAddr
-    );
+	AddResult => EX_AddResult,
+	AluZero => EX_AluZero,
+	AluResult => EX_AluResult,
+	RegWriteAddr => EX_RegWriteAddr
+  );
 
   mem_inst: etapa_MEM port map (
-	Clk => Clk,
-	Reset => Reset,
+	Branch => MEM_Branch,
+	MemRead => MEM_MemRead,
+	MemWrite => MEM_MemWrite,
 
-	In_RegWrite => MEM_RegWrite,
-	In_MemToReg => MEM_MemToReg,
-	In_Branch => MEM_Branch,
-	In_MemRead => MEM_MemRead,
-	In_MemWrite => MEM_MemWrite,
+	AddResult => MEM_AddResult,
+	AluZero => MEM_AluZero,
+	AluResult => MEM_AluResult,
+	RegReadData2 => MEM_RegReadData2,
+	RegWriteAddr => MEM_RegWriteAddr,
 
-	In_AddResult => MEM_AddResult,
-	In_AluZero => MEM_AluZero,
-	In_AluResult => MEM_AluResult,
-	In_RegReadData2 => MEM_RegReadData2,
-	In_RegWriteRegister => MEM_RegWriteRegister,
-
-	Out_RegWrite => MEM_RegWrite,
-	Out_MemToReg => MEM_MemToReg,
-
-	Out_PCSrc => MEM_PCSrc,
-	Out_MemReadData => MEM_MemReadData,
-	Out_AluZero => MEM_AluZero
+	PCSrc => MEM_PCSrc,
+	MemReadData => MEM_MemReadData
     );
 
   wb_inst: etapa_WB port map (
-	Clk => Clk,
-	Reset => Reset,
-
-	In_RegWrite => WB_RegWrite,
-	In_MemToReg => WB_MemToReg,
-
-	In_MemReadData => WB_MemReadData,
-	In_AluResult => WB_AluResult,
-	In_RegWriteRegister => WB_RegWriteRegister,
-
-	Out_RegWrite => WB_RegWrite,
-	Out_RegWriteRegister => WB_RegWriteRegister,
-	Out_RegWriteData => WB_RegWriteData
+	MemToReg => WB_MemToReg,
+	MemReadData => WB_MemReadData,
+	AluResult => WB_AluResult,
+	RegWriteData => WB_RegWriteData
   );
 
   process (Clk)
   begin
 	if (Clk'event and Clk = '0') then
-		ID_Instr 	<= I_DataOut;
-		ID_RegWe 	<= WB_RegWe;
-		ID_RegWriteAddr	<= WB_RegDst;
-		ID_RegWriteData	<= WB_WriteData;
+		IF_PCNextAddr 		<= MEM_AddResult;
 
-		ID_CurrentInstr         <= I_DataOut;
+		ID_Instr 		<= I_DataIn;
 		ID_NextInstrAddr 	<= IF_NextInstrAddr;
 
 		-- ID/EX
@@ -299,9 +265,9 @@ begin
 		EX_NextInstrAddr        <= ID_NextInstrAddr;
 		EX_RegReadData1         <= ID_RegReadData1;
 		EX_RegReadData2         <= ID_RegReadData2;
-		EX_InstructOffset_Ext   <= ID_InstrOffsetExt;
-		EX_InstructRT           <= ID_Rt;
-		EX_InstructRD           <= ID_Rd;
+		EX_InstrOffsetExt 	<= ID_InstrOffsetExt;
+		EX_Rt           	<= ID_Rt;
+		EX_Rd           	<= ID_Rd;
 
 		EX_Branch 		<= ID_Branch;
 		EX_MemRead 		<= ID_MemRead;
@@ -315,12 +281,14 @@ begin
 		MEM_MemWrite 		<= EX_MemWrite;
 		MEM_RegWrite 		<= EX_RegWrite;
 		MEM_MemToReg		<= EX_MemToReg;
+		MEM_RegReadData2        <= EX_RegReadData2;
+		MEM_AddResult		<= EX_AddResult;
 
 		-- MEM/WB
 		WB_RegWrite 		<= MEM_RegWrite;
 		WB_MemToReg		<= MEM_MemToReg;
+		WB_RegWriteAddr 	<= MEM_RegWriteAddr;
 	end if;
 end process;
-
 
 end processor_arq;

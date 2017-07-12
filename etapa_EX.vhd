@@ -5,23 +5,22 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity etapa_EX is
 port(
-	RegDest: 		in std_logic;
-	In_AluOp: 		in std_logic_vector (2 downto 0);
-	In_AluSrc: 		in std_logic;
+	RegDest: 	in std_logic;
+	AluOp: 		in std_logic_vector (2 downto 0);
+	AluSrc: 	in std_logic;
 
-	In_NextInstrAddr: 	in std_logic_vector(31 downto 0);
-	In_RegReadData1: 	in std_logic_vector(31 downto 0);
-	In_RegReadData2: 	in std_logic_vector(31 downto 0);
+	NextInstrAddr: 	in std_logic_vector(31 downto 0);
+	RegReadData1:	in std_logic_vector(31 downto 0);
+	RegReadData2: 	in std_logic_vector(31 downto 0);
 
-	In_InstructOffset_Ext: 	in std_logic_vector(31 downto 0);
-	Rt: 			in std_logic_vector(4 downto 0);
-	Rd: 			in std_logic_vector(4 downto 0);
+	InstrOffsetExt: in std_logic_vector(31 downto 0);
+	Rt: 		in std_logic_vector(4 downto 0);
+	Rd: 		in std_logic_vector(4 downto 0);
 
-	Out_AddResult : 	out std_logic_vector(31 downto 0);
-	Out_AluZero: 		out std_logic;
-	Out_AluResult: 		out std_logic_vector(31 downto 0);
-	Out_RegReadData2: 	out std_logic_vector(31 downto 0);
-	Out_RegWriteAddr: 	out std_logic_vector(4 downto 0));
+	AddResult: 	out std_logic_vector(31 downto 0);
+	AluZero: 	out std_logic;
+	AluResult: 	out std_logic_vector(31 downto 0);
+	RegWriteAddr: 	out std_logic_vector(4 downto 0));
 end etapa_EX;
 
 architecture etapa_EX_arq of etapa_EX is
@@ -49,31 +48,31 @@ architecture etapa_EX_arq of etapa_EX is
           	result: 	out std_logic_vector (31 downto 0)); 
 	end component;
 	
-	signal mux_a_alu : std_logic_vector(31 downto 0);
+	signal MuxAddrOut : std_logic_vector(31 downto 0);
 begin
 
 	emuxAlu: mux_addr Port map ( 
-	        sel 	=> In_AluSrc,
-		a 	=> In_RegReadData2,
-          	b 	=> In_InstructOffset_Ext,l
-	        output 	=> mux_a_alu
+	        sel 	=> AluSrc,
+		a 	=> RegReadData2,
+          	b 	=> InstrOffsetExt,
+	        output 	=> MuxAddrOut
 	);
 	
 	ealu: alu Port map ( 
-		a 	=> In_RegReadData1,
-          	b 	=> mux_a_alu,
-	        control => In_AluOp,
-	        zero 	=> Out_AluZero,
-	        result 	=> Out_AluResult
+		a 	=> RegReadData1,
+          	b 	=> MuxAddrOut,
+	        control => AluOp,
+	        zero 	=> AluZero,
+	        result 	=> AluResult
 	);
 
 	emuxIntr: mux Port map ( 
 	        sel 	=> RegDest,
 		a 	=> Rt,
           	b 	=> Rd,
-	        output 	=> Out_RegWriteAddr
+	        output 	=> RegWriteAddr
 	);
 	
 	-- Adder y shift 2 (no uso una ALU) combinacional
-	Out_AddResult <= In_NextInstrAddr + (In_InstructOffset_Ext(29 downto 0) & "00");
+	AddResult <= NextInstrAddr + (InstrOffsetExt(29 downto 0) & "00");
 end etapa_EX_arq;
