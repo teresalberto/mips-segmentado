@@ -5,31 +5,28 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity control is
-    Port ( 
+entity control is port ( 
 	--IN: toda la instruccion
-	Input : in  std_logic_vector (32 downto 0);
+	Input: 		in  std_logic_vector (31 downto 0);
 	--OUT: WE
-	RegWrite : out  std_logic;
-	MemToReg : out  std_logic;
+	RegWrite: 	out std_logic;
+	MemToReg: 	out std_logic;
 	--OUT: MEM
-	Branch : out  std_logic;
-	MemRead : out  std_logic;
-	MemWrite : out  std_logic;
+	Branch: 	out std_logic;
+	MemRead: 	out std_logic;
+	MemWrite: 	out std_logic;
 	--OUT: EX
-	RegDest : out  std_logic;
-	AluOp : out  std_logic_vector (2 downto 0);
-	AluSrc : out  std_logic
-	);
+	RegDest: 	out std_logic;
+	AluOp: 		out std_logic_vector (2 downto 0);
+	AluSrc: 	out std_logic);
 end control;
 
 architecture control_arq of control is
-	alias Op: std_logic_vector(5 downto 0) is input(31 downto 26);
-	alias Funct: std_logic_vector(5 downto 0) is input(5 downto 0);
-
+	alias Op: std_logic_vector(5 downto 0) is Input(31 downto 26);
+	alias Funct: std_logic_vector(5 downto 0) is Input(5 downto 0);
 begin 
 
-  process (Op,Funct)
+  process (Op, Funct)
   begin
 	case Op is
 	--Instr Tipo R
