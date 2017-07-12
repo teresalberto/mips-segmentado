@@ -10,7 +10,7 @@ entity mux_addr is
         output : out  std_logic_vector (31 downto 0));
 end mux_addr;
 
-architecture mux_addr_arq of mux is
+architecture mux_addr_arq of mux_addr is
 begin
 
 process(sel,a,b)
