@@ -80,37 +80,37 @@ architecture etapa_ID_arq of etapa_ID is
 	-- Instrucciones tipo I
 	alias Offset: std_logic_vector(15 downto 0) is Instr(15 downto 0);
 begin
-	eregisters: registers Port map ( 
-		clk => Clk,
-          	reset => Reset,
-	        wr => RegWe,
-	        reg1_dr => Rs,
-	        reg2_dr => AliasRt,
-	        reg_wr => RegWriteAddr,
-	        data_wr => RegWriteData,
-	        data1_rd => RegReadData1,
-	        data2_rd => RegReadData2	
+	eregisters: registers port map ( 
+		clk 		=> Clk,
+          	reset 		=> Reset,
+	        wr 		=> RegWe,
+	        reg1_dr 	=> Rs,
+	        reg2_dr 	=> AliasRt,
+	        reg_wr 		=> RegWriteAddr,
+	        data_wr 	=> RegWriteData,
+	        data1_rd 	=> RegReadData1,
+	        data2_rd 	=> RegReadData2	
 	);
 
-	econtrol: control Port map (
-		input => Instr,
+	econtrol: control port map (
+		Input 		=> Instr,
 
 		--OUT: WE
-		RegWrite => RegWrite,
-		MemToReg => MemToReg,
+		RegWrite 	=> RegWrite,
+		MemToReg 	=> MemToReg,
 		--OUT: MEM
-		Branch => Branch,
-		MemRead => MemRead,
-		MemWrite => MemWrite,
+		Branch 		=> Branch,
+		MemRead 	=> MemRead,
+		MemWrite 	=> MemWrite,
 		--OUT: EX
-		RegDest => RegDest,
-		AluOp =>  AluOp,
-		AluSrc => AluSrc
+		RegDest 	=> RegDest,
+		AluOp 		=> AluOp,
+		AluSrc 		=> AluSrc
 	);
 
-	esign_ext: sign_ext Port map (
-		input  => Offset,
-		output => InstrOffsetExt
+	esign_ext: sign_ext port map (
+		Input  => Offset,
+		Output => InstrOffsetExt
 	);
 
 	--Asigno Alias de instrucción a salida.

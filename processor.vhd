@@ -94,7 +94,13 @@ architecture processor_arq of processor is
 		RegWriteAddr: 	in std_logic_vector(4 downto 0);
 
 		PCSrc: 		out std_logic;
-		MemReadData: 	out std_logic_vector(31 downto 0));
+		MemReadData: 	out std_logic_vector(31 downto 0);
+
+		D_Addr: 	out std_logic_vector(31 downto 0);
+		D_RdStb: 	out std_logic;
+		D_WrStb: 	out std_logic;
+		D_DataOut: 	out std_logic_vector(31 downto 0);
+		D_DataIn: 	in  std_logic_vector(31 downto 0));
 	end component;
 
 	component etapa_WB port(
@@ -104,78 +110,79 @@ architecture processor_arq of processor is
 		RegWriteData: 	out std_logic_vector(31 downto 0));
 	end component;
 
-	signal IF_PCSrc: 		std_logic;
-	signal IF_PCNextAddr: 		std_logic_vector(31 downto 0);
-	signal IF_NextInstrAddr: 	std_logic_vector(31 downto 0);
+	signal IF_Instr: 		std_logic_vector(31 downto 0) := (others => '0');
+	signal IF_PCSrc: 		std_logic := '0';
+	signal IF_PCNextAddr: 		std_logic_vector(31 downto 0) := (others => '0');
+	signal IF_NextInstrAddr: 	std_logic_vector(31 downto 0) := (others => '0');
 
-	signal ID_Instr: 		std_logic_vector(31 downto 0);
-	signal ID_NextInstrAddr: 	std_logic_vector(31 downto 0);
-	signal ID_RegWriteAddr:	 	std_logic_vector(4 downto 0);
-	signal ID_RegWriteData:		std_logic_vector(31 downto 0);
-	signal ID_Branch: 		std_logic;
-	signal ID_MemRead:		std_logic;
-	signal ID_MemWrite:		std_logic;
-	signal ID_RegDest:		std_logic;
-	signal ID_AluOp:		std_logic_vector(2 downto 0);
-	signal ID_AluSrc:		std_logic;
-	signal ID_RegWrite: 		std_logic;
-	signal ID_MemToReg: 		std_logic;
-	signal ID_RegReadData1:		std_logic_vector(31 downto 0);
-	signal ID_RegReadData2:		std_logic_vector(31 downto 0);
-	signal ID_InstrOffsetExt:	std_logic_vector(31 downto 0);
-	signal ID_Rt:			std_logic_vector(4 downto 0);
-	signal ID_Rd: 			std_logic_vector(4 downto 0);
+	signal ID_Instr: 		std_logic_vector(31 downto 0) := (others => '0');
+	signal ID_NextInstrAddr: 	std_logic_vector(31 downto 0) := (others => '0');
+	signal ID_RegWriteAddr:	 	std_logic_vector(4 downto 0)  := (others => '0');
+	signal ID_RegWriteData:		std_logic_vector(31 downto 0) := (others => '0');
+	signal ID_Branch: 		std_logic := '0';
+	signal ID_MemRead:		std_logic := '0';
+	signal ID_MemWrite:		std_logic := '0';
+	signal ID_RegDest:		std_logic := '0';
+	signal ID_AluOp:		std_logic_vector(2 downto 0) := (others => '0');
+	signal ID_AluSrc:		std_logic := '0';
+	signal ID_RegWrite: 		std_logic := '0';
+	signal ID_MemToReg: 		std_logic := '0';
+	signal ID_RegReadData1:		std_logic_vector(31 downto 0) := (others => '0');
+	signal ID_RegReadData2:		std_logic_vector(31 downto 0) := (others => '0');
+	signal ID_InstrOffsetExt:	std_logic_vector(31 downto 0) := (others => '0');
+	signal ID_Rt:			std_logic_vector(4 downto 0) := (others => '0');
+	signal ID_Rd: 			std_logic_vector(4 downto 0) := (others => '0');
 
-	signal EX_RegDest: 		std_logic;
-	signal EX_AluOp: 		std_logic_vector (2 downto 0);
-	signal EX_AluSrc: 		std_logic;
-	signal EX_NextInstrAddr: 	std_logic_vector(31 downto 0);
-	signal EX_RegReadData1:		std_logic_vector(31 downto 0);
-	signal EX_RegReadData2: 	std_logic_vector(31 downto 0);
-	signal EX_InstrOffsetExt: 	std_logic_vector(31 downto 0);
-	signal EX_Rt: 			std_logic_vector(4 downto 0);
-	signal EX_Rd: 			std_logic_vector(4 downto 0);
-	signal EX_AddResult: 		std_logic_vector(31 downto 0);
-	signal EX_AluZero: 		std_logic;
-	signal EX_AluResult: 		std_logic_vector(31 downto 0);
-	signal EX_RegWriteAddr: 	std_logic_vector(4 downto 0);
+	signal EX_RegDest: 		std_logic := '0';
+	signal EX_AluOp: 		std_logic_vector (2 downto 0) := (others => '0');
+	signal EX_AluSrc: 		std_logic := '0';
+	signal EX_NextInstrAddr: 	std_logic_vector(31 downto 0) := (others => '0');
+	signal EX_RegReadData1:		std_logic_vector(31 downto 0) := (others => '0');
+	signal EX_RegReadData2: 	std_logic_vector(31 downto 0) := (others => '0');
+	signal EX_InstrOffsetExt: 	std_logic_vector(31 downto 0) := (others => '0');
+	signal EX_Rt: 			std_logic_vector(4 downto 0) := (others => '0');
+	signal EX_Rd: 			std_logic_vector(4 downto 0) := (others => '0');
+	signal EX_AddResult: 		std_logic_vector(31 downto 0) := (others => '0');
+	signal EX_AluZero: 		std_logic := '0';
+	signal EX_AluResult: 		std_logic_vector(31 downto 0) := (others => '0');
+	signal EX_RegWriteAddr: 	std_logic_vector(4 downto 0) := (others => '0');
 
-	signal MEM_Branch:		std_logic;
-	signal MEM_MemRead:		std_logic;
-	signal MEM_MemWrite:		std_logic;
-	signal MEM_RegWrite:		std_logic;
-	signal MEM_MemToReg:		std_logic;
-	signal MEM_AddResult: 		std_logic_vector(31 downto 0);
-	signal MEM_AluZero: 		std_logic;
-	signal MEM_AluResult: 		std_logic_vector(31 downto 0);
-	signal MEM_RegWriteAddr: 	std_logic_vector(4 downto 0);
+	signal MEM_Branch:		std_logic := '0';
+	signal MEM_MemRead:		std_logic := '0';
+	signal MEM_MemWrite:		std_logic := '0';
+	signal MEM_RegWrite:		std_logic := '0';
+	signal MEM_MemToReg:		std_logic := '0';
+	signal MEM_AddResult: 		std_logic_vector(31 downto 0) := (others => '0');
+	signal MEM_AluZero: 		std_logic := '0';
+	signal MEM_AluResult: 		std_logic_vector(31 downto 0) := (others => '0');
+	signal MEM_RegWriteAddr: 	std_logic_vector(4 downto 0) := (others => '0');
 
-	signal MEM_PCSrc: 		std_logic;
-	signal MEM_MemReadData: 	std_logic_vector(31 downto 0);
+	signal MEM_PCSrc: 		std_logic := '0';
+	signal MEM_MemReadData: 	std_logic_vector(31 downto 0) := (others => '0');
 
-	signal WB_MemToReg:		std_logic;
-	signal WB_MemReadData: 		std_logic_vector(31 downto 0);
-	signal WB_AluResult: 		std_logic_vector(31 downto 0);
-	signal WB_RegWriteData:		std_logic_vector(31 downto 0);
+	signal WB_MemToReg:		std_logic := '0';
+	signal WB_MemReadData: 		std_logic_vector(31 downto 0) := (others => '0');
+	signal WB_AluResult: 		std_logic_vector(31 downto 0) := (others => '0');
+	signal WB_RegWriteData:		std_logic_vector(31 downto 0) := (others => '0');
 
 	-- Señales "virtuales" (registro solamente)
-	signal EX_Branch:		std_logic;
-	signal EX_MemRead:		std_logic;
-	signal EX_MemWrite:		std_logic;
-	signal EX_RegWrite:		std_logic;
-	signal EX_MemToReg:		std_logic;
-	signal MEM_RegReadData2: 	std_logic_vector(31 downto 0);
-	signal WB_RegWe:		std_logic;
-	signal WB_RegWrite:		std_logic;
-	signal WB_RegWriteAddr: 	std_logic_vector(4 downto 0);
+	signal EX_Branch:		std_logic := '0';
+	signal EX_MemRead:		std_logic := '0';
+	signal EX_MemWrite:		std_logic := '0';
+	signal EX_RegWrite:		std_logic := '0';
+	signal EX_MemToReg:		std_logic := '0';
+	signal MEM_RegReadData2: 	std_logic_vector(31 downto 0) := (others => '0');
+	signal WB_RegWe:		std_logic := '0';
+	signal WB_RegWrite:		std_logic := '0';
+	signal WB_RegWriteAddr: 	std_logic_vector(4 downto 0) := (others => '0');
 begin 	
   if_inst: etapa_IF port map (
-	Clk => Clk,
-	Reset => Reset,
-	PCSrc => IF_PCSrc,
-	PCNextAddr => IF_PCNextAddr,
-	CurrInstrAddr => I_Addr,
-	NextInstrAddr => IF_NextInstrAddr
+	Clk 		=> Clk,
+	Reset 		=> Reset,
+	PCSrc 		=> IF_PCSrc,
+	PCNextAddr 	=> IF_PCNextAddr,
+	CurrInstrAddr 	=> I_Addr,
+	NextInstrAddr 	=> IF_NextInstrAddr
   );
 
   id_inst: etapa_ID port map (
@@ -240,7 +247,12 @@ begin
 	RegWriteAddr => MEM_RegWriteAddr,
 
 	PCSrc => MEM_PCSrc,
-	MemReadData => MEM_MemReadData
+	MemReadData => MEM_MemReadData,
+	D_Addr => D_Addr,
+	D_RdStb => D_RdStb,
+	D_WrStb => D_WrStb,
+	D_DataOut => D_DataOut,
+	D_DataIn => D_DataIn
     );
 
   wb_inst: etapa_WB port map (
@@ -250,12 +262,17 @@ begin
 	RegWriteData => WB_RegWriteData
   );
 
+  I_RdStb <= '1';
+  I_WrStb <= '0';
+  I_DataOut <= (others => '0');
+
   process (Clk)
   begin
 	if (Clk'event and Clk = '0') then
+		IF_Instr		<= I_DataIn;
 		IF_PCNextAddr 		<= MEM_AddResult;
 
-		ID_Instr 		<= I_DataIn;
+		ID_Instr 		<= IF_Instr;
 		ID_NextInstrAddr 	<= IF_NextInstrAddr;
 
 		-- ID/EX
@@ -283,11 +300,14 @@ begin
 		MEM_MemToReg		<= EX_MemToReg;
 		MEM_RegReadData2        <= EX_RegReadData2;
 		MEM_AddResult		<= EX_AddResult;
+		MEM_AluResult		<= EX_AluResult;
 
 		-- MEM/WB
 		WB_RegWrite 		<= MEM_RegWrite;
+		WB_MemReadData 		<= MEM_MemReadData;
 		WB_MemToReg		<= MEM_MemToReg;
 		WB_RegWriteAddr 	<= MEM_RegWriteAddr;
+		WB_AluResult		<= MEM_AluResult;
 	end if;
 end process;
 

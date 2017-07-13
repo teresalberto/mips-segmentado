@@ -5,7 +5,7 @@ use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity etapa_WB is
 port(
-	MemToReg: 	in  std_logic;
+	MemToReg: 	in std_logic;
 	MemReadData: 	in std_logic_vector(31 downto 0);
 	AluResult: 	in std_logic_vector(31 downto 0);
 

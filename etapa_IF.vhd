@@ -16,19 +16,19 @@ end etapa_IF;
 
 architecture etapa_IF_arq of etapa_IF is
 	component mux_addr port(
-		sel: in std_logic;
-       		a:   in std_logic_vector(31 downto 0);
-        	b:   in std_logic_vector(31 downto 0);
+		sel: 	in  std_logic;
+       		a:   	in  std_logic_vector(31 downto 0);
+        	b:   	in  std_logic_vector(31 downto 0);
         	output: out std_logic_vector(31 downto 0)
 	); 
 	end component;
 
 	component pc port(
-		input: in std_logic_vector(31 downto 0);
-		we:     in   std_logic;
-		clk:    in   std_logic;
-		rst:    in   std_logic;
-		output: out  std_logic_vector(31 downto 0)
+		clk:    in 	std_logic;
+		rst:    in 	std_logic;
+		input:  in 	std_logic_vector(31 downto 0);
+		we:     in 	std_logic;
+		output: out 	std_logic_vector(31 downto 0)
 	); 
 	end component;
  
